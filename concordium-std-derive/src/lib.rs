@@ -453,15 +453,15 @@ fn init_worker(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream>
     );
 
     let mut out = if init_attributes.optional.low_level {
-        required_args.push("state: &impl HasContractStateLL");
+        required_args.push("state: &mut impl HasContractStateLL");
         quote! {
             #[export_name = #wasm_export_fn_name]
             pub extern "C" fn #rust_export_fn_name(#amount_ident: concordium_std::Amount) -> i32 {
                 use concordium_std::{trap, ExternContext, InitContextExtern, ContractStateLL, HasContractStateLL};
                 #setup_fn_optional_args
                 let ctx = ExternContext::<InitContextExtern>::open(());
-                let state = ContractStateLL::open(());
-                match #fn_name(&ctx, #(#fn_optional_args, )* &state) {
+                let mut state = ContractStateLL::open(());
+                match #fn_name(&ctx, #(#fn_optional_args, )* &mut state) {
                     Ok(()) => 0,
                     Err(reject) => {
                         let code = Reject::from(reject).error_code.get();
@@ -475,15 +475,15 @@ fn init_worker(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream>
             }
         }
     } else {
-        required_args.push("state: &impl HasContractStateHL");
+        required_args.push("state: &mut impl HasContractStateHL");
         quote! {
             #[export_name = #wasm_export_fn_name]
             pub extern "C" fn #rust_export_fn_name(amount: concordium_std::Amount) -> i32 {
                 use concordium_std::{trap, ExternContext, InitContextExtern, ContractStateHL, HasContractStateHL};
                 #setup_fn_optional_args
                 let ctx = ExternContext::<InitContextExtern>::open(());
-                let state = ContractStateHL::open(());
-                match #fn_name(&ctx, #(#fn_optional_args, )* &state) {
+                let mut state = ContractStateHL::open(());
+                match #fn_name(&ctx, #(#fn_optional_args, )* &mut state) {
                     Ok(()) => 0,
                     Err(reject) => {
                         let code = Reject::from(reject).error_code.get();
@@ -659,15 +659,15 @@ fn receive_worker(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
     );
 
     let mut out = if receive_attributes.optional.low_level {
-        required_args.push("state: &impl HasContractStateLL");
+        required_args.push("state: &mut impl HasContractStateLL");
         quote! {
             #[export_name = #wasm_export_fn_name]
             pub extern "C" fn #rust_export_fn_name(#amount_ident: concordium_std::Amount) -> i32 {
                 use concordium_std::{SeekFrom, ContractStateLL, HasContractStateLL, Logger, ReceiveContextExtern, ExternContext};
                 #setup_fn_optional_args
                 let ctx = ExternContext::<ReceiveContextExtern>::open(());
-                let state = ContractStateLL::open(());
-                let res: Result<Action, _> = #fn_name(&ctx, #(#fn_optional_args, )* &state);
+                let mut state = ContractStateLL::open(());
+                let res: Result<Action, _> = #fn_name(&ctx, #(#fn_optional_args, )* &mut state);
                 match res {
                     Ok(act) => {
                         act.tag() as i32
@@ -684,7 +684,7 @@ fn receive_worker(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
             }
         }
     } else {
-        required_args.push("state: &impl HasContractStateHL");
+        required_args.push("state: &mut impl HasContractStateHL");
 
         quote! {
             #[export_name = #wasm_export_fn_name]
@@ -692,8 +692,8 @@ fn receive_worker(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStre
                 use concordium_std::{SeekFrom, ContractStateHL, HasContractStateHL, Logger, trap};
                 #setup_fn_optional_args
                 let ctx = ExternContext::<ReceiveContextExtern>::open(());
-                let state = ContractStateHL::open(());
-                let res: Result<Action, _> = #fn_name(&ctx, #(#fn_optional_args, )* &state);
+                let mut state = ContractStateHL::open(());
+                let res: Result<Action, _> = #fn_name(&ctx, #(#fn_optional_args, )* &mut state);
                 match res {
                     Ok(act) => {
                         act.tag() as i32
