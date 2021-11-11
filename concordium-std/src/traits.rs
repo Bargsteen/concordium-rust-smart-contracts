@@ -134,6 +134,8 @@ where
     Self: Read,
     Self: Write<Err = Error>,
     Self: Seek<Err = Error>, {
+    fn open(entry_id: EntryId) -> Self;
+
     /// Get the entry id.
     fn entry_id(&self) -> EntryId;
 
