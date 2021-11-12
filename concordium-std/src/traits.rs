@@ -207,7 +207,7 @@ pub trait HasStateMap<'a, K: Serialize, V: Serialize, Error: Default = ()> {
 
     /// Returns whether anything was overwritten.
     /// TODO: Returns result due to write_all.
-    fn insert(&self, key: K, value: V) -> Result<bool, ()>;
+    fn insert(&mut self, key: K, value: V) -> Result<bool, ()>;
 
     fn get(&self, key: K) -> Option<V>;
 }

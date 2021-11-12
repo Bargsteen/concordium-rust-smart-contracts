@@ -615,7 +615,7 @@ where
         }
     }
 
-    fn insert(&self, key: K, value: V) -> Result<bool, ()> {
+    fn insert(&mut self, key: K, value: V) -> Result<bool, ()> {
         let k = self.key_with_map_prefix(key);
         let v = to_bytes(&value);
         self.contract_state_ll.insert(&k, &v)
