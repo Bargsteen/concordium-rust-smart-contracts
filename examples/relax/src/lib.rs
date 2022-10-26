@@ -33,31 +33,41 @@ fn init<S: HasStateApi>(
     })
 }
 
-#[receive(
-    contract = "relax",
-    name = "receive",
-    parameter = "(bool, String)",
-    error = "Error",
-    mutable
-)]
+#[receive(contract = "relax", name = "receive", parameter = "String", error = "Error", mutable)]
 fn receive<S: HasStateApi>(
     ctx: &impl HasReceiveContext,
     host: &mut impl HasHost<State, StateApiType = S>,
 ) -> Result<(), Error> {
-    let (invoke, param): (bool, String) = ctx.parameter_cursor().get()?;
+    let param: String = ctx.parameter_cursor().get()?;
 
-    host.state_mut().text = format!("{}  ---  {}", host.state().text, param);
+    host.state_mut().text = param;
 
-    if invoke {
-        let res = host.invoke_contract(
+    Ok(())
+}
+
+#[receive(
+    contract = "relax",
+    name = "receive-indirect",
+    parameter = "String",
+    error = "Error",
+    mutable
+)]
+fn receive_indirect<S: HasStateApi>(
+    ctx: &impl HasReceiveContext,
+    host: &mut impl HasHost<State, StateApiType = S>,
+) -> Result<(), Error> {
+    let param: String = ctx.parameter_cursor().get()?;
+
+    if host
+        .invoke_contract(
             &ctx.self_address(),
-            &(false, param),
-            EntrypointName::new_unchecked("receive-parameter"),
+            &param,
+            EntrypointName::new_unchecked("receive"),
             Amount::zero(),
-        );
-        if res.is_err() {
-            return Err(Error::InvokeFailed);
-        }
+        )
+        .is_err()
+    {
+        return Err(Error::InvokeFailed);
     }
     Ok(())
 }
